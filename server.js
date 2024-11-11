@@ -95,13 +95,11 @@ app.post('/signup', (req, res) => {
     emailAddress,
     username,
     password,
-    gender
+    gender,
   } = req.body;
 
-  // Perform any additional validation if needed
-
-  const sql = 'INSERT INTO residents (fullname, birthdate, barangay, phone, residency, email, username, password, gender) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
-  db.query(sql, [fullName, birthDate, barangay, phoneNumber, proofOfResidency, emailAddress, username, password, gender], (err, result) => {
+  const sql = 'INSERT INTO residents (fullname, birthdate, barangay, phone, residency, email, username, password, gender) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)';
+  pool.query(sql, [fullName, birthDate, barangay, phoneNumber, proofOfResidency, emailAddress, username, password, gender], (err, result) => {
     if (err) {
       console.error('Error saving resident:', err);
       res.status(500).send('Error saving data');
@@ -124,7 +122,7 @@ app.get('/barangays', (req, res) => {
   });
 });
 
-app.post('/submitReport', (req, res) => {
+app.post('/submitReport', async (req, res) => {
   const {
     userId,
     category,
@@ -150,36 +148,29 @@ app.post('/submitReport', (req, res) => {
   const witnessNames = typeof witnessName === 'string' ? witnessName : '';
   const witnessContacts = typeof witnessContact === 'string' ? witnessContact : '';
 
-  const sql = 'INSERT INTO reports (user_id, category, name, address, contact, valid_id, witness, witnessNo, crimeDate, time, description, injury, status, evidenceType, evidenceDescription, evidenceDate, location, evidence) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);';
+  const sql = 'INSERT INTO reports (user_id, category, name, address, contact, valid_id, witness, witnessNo, crimeDate, time, description, injury, status, evidenceType, evidenceDescription, evidenceDate, location, evidence) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)';
 
-  db.query(sql, [userId, category, victimName, victimAddress, victimContact, file, witnessNames, witnessContacts, crimeDate, crimeTime, crimeDescription, injuryOrDamages, status, evidence_Type, descripEvidence, dateEvidence, location, evidence], (err, result) => {
-    if (err) {
-      console.error('Error saving report:', err);
-      res.status(500).send('Error saving data');
-      return;
-    }
-    console.log('New report added:', result);
+  try {
+    await db.query(sql, [userId, category, victimName, victimAddress, victimContact, file, witnessNames, witnessContacts, crimeDate, crimeTime, crimeDescription, injuryOrDamages, status, evidence_Type, descripEvidence, dateEvidence, location, evidence]);
     res.status(200).send('Report submitted successfully');
-  });
+  } catch (err) {
+    console.error('Error saving report:', err);
+    res.status(500).send('Error saving data');
+  }
 });
 
-app.post('/submitEmergency', (req, res) => {
+app.post('/submitEmergency', async (req, res) => {
   const { lat, combinedLocation } = req.body;
 
   if (!lat || !combinedLocation) {
     res.status(400).send('Location data is required');
     return;
   }
-  // Assuming the emergency reports table is called 'emergencies'
-  const sql = 'INSERT INTO emergency (lat, location) VALUES (?, ?)';
 
-  db.query(sql, [lat, combinedLocation], (err, result) => {
-    if (err) {
-      console.error('Database query error:', err);
-      res.status(500).send('Server error');
-      return;
-    }
-    console.log('New emergency report added:', result);
+  const sql = 'INSERT INTO emergency (lat, location) VALUES ($1, $2)';
+
+  try {
+    await db.query(sql, [lat, combinedLocation]);
 
     // Broadcasting the emergency alert
     broadcast(JSON.stringify({
@@ -190,7 +181,10 @@ app.post('/submitEmergency', (req, res) => {
     }));
 
     res.status(200).send('Emergency report submitted successfully');
-  });
+  } catch (err) {
+    console.error('Database query error:', err);
+    res.status(500).send('Server error');
+  }
 });
 
 app.get('/notifications', (req, res) => {
