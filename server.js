@@ -218,20 +218,22 @@ app.get('/reports', (req, res) => {
     return res.status(400).json({ error: 'User ID is required' });
   }
 
-  const query = 'SELECT * FROM reports WHERE user_id = ?;';
-  db.query(query, [userId], (error, results) => {
+  // Modify the query to use `$1` for PostgreSQL parameterized syntax
+  const query = 'SELECT * FROM reports WHERE user_id = $1;';
+  db.query(query, [userId], (error, result) => {
     if (error) {
       console.error('Error fetching reports:', error);
       return res.status(500).json({ error: 'Internal server error' });
     }
 
-    if (results.length === 0) {
+    if (result.rows.length === 0) {
       return res.status(404).json({ error: 'No reports found for this user' });
     }
 
-    res.json(results); // Send the entire array of reports
+    res.json(result.rows); // Send only the rows (array of reports) in the response
   });
 });
+
 
 const generateVerificationCode = () => {
   return Math.floor(100000 + Math.random() * 900000); // Generate a 6-digit code
