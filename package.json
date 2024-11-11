@@ -1,15 +1,15 @@
 {
-    "name": "messenger-backend",
+    "name": "reporting-backend",
     "version": "1.0.0",
-    "description": "Backend for the Messenger App using Express and PostgreSQL",
+    "description": "Backend for the Reporting App using Express and PostgreSQL",
     "main": "server.js",
     "scripts": {
       "start": "node server.js"
     },
     "dependencies": {
-      "express": "^4.17.3",
-      "body-parser": "^1.19.1",
-      "pg": "^8.12.0",
+      "express": "^4.21.0",
+      "body-parser": "^1.20.3",
+      "pg": "^8.13.1",
       "cors": "^2.8.5"
     },
     "engines": {
