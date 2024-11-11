@@ -393,19 +393,20 @@ app.post('/reset-password', async (req, res) => {
 });
 
 
-app.post('/saveMessage', (req, res) => {
+app.post('/saveMessage', async (req, res) => {
   const { userId, police, notif } = req.body;
 
-  const query = 'INSERT INTO notifications (userId, police_id, notif, chat_date) VALUES (?, ?, ?, NOW())';
-  
-  db.query(query, [userId, police, notif], (error, results) => {
-    if (error) {
-      console.error('Database error:', error);
-      return res.status(500).json({ success: false, message: 'Database error', error });
-    }
+  const query = 'INSERT INTO notifications (user_id, police_id, notif, chat_date) VALUES ($1, $2, $3, NOW())';
+
+  try {
+    await db.query(query, [userId, police, notif]);
     return res.status(200).json({ success: true, message: 'Message sent successfully' });
-  });
+  } catch (error) {
+    console.error('Database error:', error);
+    return res.status(500).json({ success: false, message: 'Database error', error });
+  }
 });
+
 
 
 app.get('/api/emergencies', (req, res) => {
