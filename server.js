@@ -416,7 +416,7 @@ app.post('/saveMessage', async (req, res) => {
 
 
 app.get('/api/emergencies', (req, res) => {
-  const query = 'SELECT * FROM emergency WHERE status IS NULL'; // Query to fetch emergencies with status = null
+  const query = 'SELECT * FROM emergency WHERE status = ""'; // Query to fetch emergencies with empty status
   db.query(query, (err, result) => {
     if (err) {
       return res.status(500).json({ error: 'Failed to fetch emergencies' });
@@ -431,6 +431,7 @@ app.get('/api/emergencies', (req, res) => {
     }
   });
 });
+
 
 
 app.put('/api/emergencies/:id/respond', (req, res) => {
