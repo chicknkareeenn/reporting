@@ -41,24 +41,20 @@ db.connect((err) => {
 const server = http.createServer(app);
 initWebSocketNotifServer(server);
 
-app.post('/login', (req, res) => {
+app.post('/login', async (req, res) => {
   const { username, password } = req.body;
 
   if (!username || !password) {
     return res.status(400).send('Username and password are required');
   }
 
-  // Check if the user is a resident
-  const sqlResident = 'SELECT * FROM residents WHERE username = ? AND password = ?';
-  db.query(sqlResident, [username, password], (err, result) => {
-    if (err) {
-      console.error('Database query error:', err);
-      return res.status(500).send('Server error');
-    }
+  try {
+    // Check if the user is a resident
+    const sqlResident = 'SELECT * FROM residents WHERE username = $1 AND password = $2';
+    const residentResult = await db.query(sqlResident, [username, password]);
 
-    // If a resident is found
-    if (result.length > 0) {
-      const user = result[0];
+    if (residentResult.rows.length > 0) {
+      const user = residentResult.rows[0];
       return res.json({
         success: true,
         userId: user.id,
@@ -68,30 +64,26 @@ app.post('/login', (req, res) => {
     }
 
     // If no resident, check if the user is a police officer
-    const sqlPolice = 'SELECT * FROM police WHERE username = ? AND password = ?';
-    db.query(sqlPolice, [username, password], (err, result) => {
-      if (err) {
-        console.error('Database query error:', err);
-        return res.status(500).send('Server error');
-      }
+    const sqlPolice = 'SELECT * FROM police WHERE username = $1 AND password = $2';
+    const policeResult = await db.query(sqlPolice, [username, password]);
 
-      // If a police officer is found
-      if (result.length > 0) {
-        const user = result[0];
-        return res.json({
-          success: true,
-          userId: user.id,
-          role: 'police',  // Indicate that the user is a police officer
-          message: 'Login successful'
-        });
-      }
+    if (policeResult.rows.length > 0) {
+      const user = policeResult.rows[0];
+      return res.json({
+        success: true,
+        userId: user.id,
+        role: 'police',  // Indicate that the user is a police officer
+        message: 'Login successful'
+      });
+    }
 
-      // Invalid credentials for both resident and police
-      return res.status(401).send('Invalid credentials');
-    });
-  });
+    // Invalid credentials for both resident and police
+    return res.status(401).send('Invalid credentials');
+  } catch (err) {
+    console.error('Database query error:', err);
+    return res.status(500).send('Server error');
+  }
 });
-
 
 app.post('/signup', (req, res) => {
   const {
