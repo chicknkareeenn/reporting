@@ -207,8 +207,7 @@ app.get('/notifications', (req, res) => {
       return;
     }
 
-    // Send only the rows (actual data) in the response
-    res.json(result.rows);
+    res.json(results);
 
     // Broadcasting the notification for each row
     result.rows.forEach(notification => broadcastNotification(notification));
