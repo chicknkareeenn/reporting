@@ -13,7 +13,6 @@
     "pg": "^8.13.1",
     "cors": "^2.8.5",
     "path": "^0.12.7",
-    "http": "^0.0.1",
     "websocket-server-notif": "^1.0.0"
   },
   "engines": {
