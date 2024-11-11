@@ -160,7 +160,7 @@ app.post('/submitReport', async (req, res) => {
   }
 });
 
-app.post('/submitEmergency', async (req, res) => {
+app.post('/submitEmergency', (req, res) => {
   const { lat, combinedLocation } = req.body;
 
   if (!lat || !combinedLocation) {
@@ -168,10 +168,16 @@ app.post('/submitEmergency', async (req, res) => {
     return;
   }
 
+  // Update query to use PostgreSQL parameterized syntax ($1, $2)
   const sql = 'INSERT INTO emergency (lat, location) VALUES ($1, $2)';
 
-  try {
-    await db.query(sql, [lat, combinedLocation]);
+  db.query(sql, [lat, combinedLocation], (err, result) => {
+    if (err) {
+      console.error('Database query error:', err);
+      res.status(500).send('Server error');
+      return;
+    }
+    console.log('New emergency report added:', result);
 
     // Broadcasting the emergency alert
     broadcast(JSON.stringify({
@@ -182,11 +188,9 @@ app.post('/submitEmergency', async (req, res) => {
     }));
 
     res.status(200).send('Emergency report submitted successfully');
-  } catch (err) {
-    console.error('Database query error:', err);
-    res.status(500).send('Server error');
-  }
+  });
 });
+
 
 app.get('/notifications', (req, res) => {
   const userId = req.query.user_id; // Retrieve user_id from query parameters
@@ -283,31 +287,33 @@ const generateVerificationCode = () => {
 });*/
 
 // New endpoint to fetch username based on user ID
-app.get('/api/users/:id', (req, res) => {
+app.get('/api/users/:id', async (req, res) => {
   const userId = req.params.id;
 
-  // Query to fetch the username based on user ID
-  const sql = 'SELECT username FROM residents WHERE id = ?';
-  db.query(sql, [userId], (error, results) => {
-    if (error) {
-      console.error('Error fetching user:', error);
-      return res.status(500).json({ error: 'Internal server error' });
-    }
+  try {
+    // PostgreSQL parameterized query syntax
+    const { rows } = await db.query('SELECT username FROM residents WHERE id = $1', [userId]);
 
-    if (results.length === 0) {
+    if (rows.length === 0) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    const username = results[0].username;
+    const username = rows[0].username;
     res.json({ username });
-  });
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
+
 
 app.post('/send-verification', async (req, res) => {
   const { userId } = req.body;
 
   try {
-    const [resident] = await query('SELECT email FROM residents WHERE id = ?', [userId]);
+    // Use PostgreSQL parameterized query syntax
+    const { rows } = await db.query('SELECT email FROM residents WHERE id = $1', [userId]);
+    const resident = rows[0];
 
     if (!resident) {
       return res.status(404).json({ success: false, message: 'User not found' });
@@ -318,7 +324,7 @@ app.post('/send-verification', async (req, res) => {
 
     // Setup Nodemailer transporter
     const transporter = nodemailer.createTransport({
-      service: 'Gmail', // Or any other email service you prefer
+      service: 'Gmail',
       auth: {
         user: 'st.peter.lifeplansinsurance@gmail.com',
         pass: 'scuhbuyjyujshdeo',
@@ -336,8 +342,8 @@ app.post('/send-verification', async (req, res) => {
     // Send the email
     await transporter.sendMail(mailOptions);
 
-    // Optionally, store the verification code in the database for later validation
-    await query('UPDATE residents SET verification_code = ? WHERE id = ?', [verificationCode, userId]);
+    // Store the verification code in the database
+    await db.query('UPDATE residents SET verification_code = $1 WHERE id = $2', [verificationCode, userId]);
 
     res.status(200).json({ success: true, message: 'Verification code sent successfully' });
   } catch (error) {
@@ -350,13 +356,16 @@ app.post('/validate-verification-code', async (req, res) => {
   const { userId, code } = req.body;
 
   try {
-    const [resident] = await query('SELECT verification_code FROM residents WHERE id = ?', [userId]);
+    // Using PostgreSQL syntax with parameterized queries
+    const { rows } = await db.query('SELECT verification_code FROM residents WHERE id = $1', [userId]);
 
-    if (!resident) {
+    if (rows.length === 0) {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
 
-    if (resident.verification_code === code) {
+    const verificationCode = rows[0].verification_code;
+
+    if (verificationCode === code) {
       res.status(200).json({ success: true, message: 'Verification code valid' });
     } else {
       res.status(400).json({ success: false, message: 'Invalid verification code' });
@@ -368,12 +377,13 @@ app.post('/validate-verification-code', async (req, res) => {
 });
 
 
+
 app.post('/reset-password', async (req, res) => {
   const { userId, newPassword } = req.body;
 
   try {
-    // Update the password in the database
-    await query('UPDATE residents SET password = ? WHERE id = ?', [newPassword, userId]);
+    // Update the password in the PostgreSQL database
+    await db.query('UPDATE residents SET password = $1 WHERE id = $2', [newPassword, userId]);
 
     res.status(200).json({ success: true, message: 'Password reset successfully' });
   } catch (error) {
