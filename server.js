@@ -118,7 +118,8 @@ app.get('/barangays', (req, res) => {
       res.status(500).send('Error fetching barangays');
       return;
     }
-    res.json(results);
+    // Send only the rows array, which contains the desired data
+    res.json(results.rows);
   });
 });
 
