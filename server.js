@@ -207,7 +207,7 @@ app.get('/notifications', (req, res) => {
       return;
     }
 
-    res.json(result);
+    res.json(result.rows);
 
     // Broadcasting the notification for each row
     result.rows.forEach(notification => broadcastNotification(notification));
