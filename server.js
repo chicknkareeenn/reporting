@@ -194,17 +194,20 @@ app.get('/notifications', (req, res) => {
     return res.status(400).send('User ID is required');
   }
 
-  const query = 'SELECT * FROM files WHERE user_id = ? ORDER BY time DESC';
-  db.query(query, [userId], (error, results) => {
+  // Modify query syntax to use `$1` for parameterized queries in PostgreSQL
+  const query = 'SELECT * FROM files WHERE user_id = $1 ORDER BY time DESC';
+  db.query(query, [userId], (error, result) => {
     if (error) {
       console.error('Error fetching notifications:', error);
       res.status(500).send('Server error');
       return;
     }
-    res.json(results);
 
-    // Broadcasting the notification
-    results.forEach(notification => broadcastNotification(notification));
+    // Send only the rows (actual data) in the response
+    res.json(result.rows);
+
+    // Broadcasting the notification for each row
+    result.rows.forEach(notification => broadcastNotification(notification));
   });
 });
 
