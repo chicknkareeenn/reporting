@@ -421,9 +421,17 @@ app.get('/api/emergencies', (req, res) => {
     if (err) {
       return res.status(500).json({ error: 'Failed to fetch emergencies' });
     }
-    res.json(result); // Send the result back to the client
+    
+    // Check if the result is an array before sending it back to the client
+    if (Array.isArray(result)) {
+      res.json(result); // Send the result back to the client
+    } else {
+      console.error('Unexpected result format:', result);
+      res.status(500).json({ error: 'Unexpected response format from database' });
+    }
   });
 });
+
 
 app.put('/api/emergencies/:id/respond', (req, res) => {
   const emergencyId = req.params.id;
