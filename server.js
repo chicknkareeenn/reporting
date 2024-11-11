@@ -416,15 +416,17 @@ app.post('/saveMessage', async (req, res) => {
 
 
 app.get('/api/emergencies', (req, res) => {
-  const query = 'SELECT * FROM emergency WHERE status = ""'; // Query to fetch emergencies with empty status
-  db.query(query, (err, result) => {
+  const query = 'SELECT * FROM emergency WHERE status IS NULL OR status = ""'; // Query to fetch emergencies with empty or null status
+  
+  pool.query(query, (err, result) => {
     if (err) {
+      console.error('Error executing query:', err);  // Log the error for debugging
       return res.status(500).json({ error: 'Failed to fetch emergencies' });
     }
     
-    // Check if the result is an array before sending it back to the client
-    if (Array.isArray(result)) {
-      res.json(result); // Send the result back to the client
+    // Check if result.rows is an array and send the result
+    if (Array.isArray(result.rows)) {
+      res.json(result.rows); // Send the rows back to the client
     } else {
       console.error('Unexpected result format:', result);
       res.status(500).json({ error: 'Unexpected response format from database' });
