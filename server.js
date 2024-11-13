@@ -149,7 +149,7 @@ app.post('/submitReport', async (req, res) => {
   const witnessNames = typeof witnessName === 'string' ? witnessName : '';
   const witnessContacts = typeof witnessContact === 'string' ? witnessContact : '';
 
-  const sql = 'INSERT INTO reports (user_id, category, name, address, contact, valid_id, witness, witnessNo, crimeDate, time, description, injury, status, evidenceType, evidenceDescription, evidenceDate, location, evidence) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)';
+  const sql = 'INSERT INTO reports (user_id, category, name, address, contact, valid_id, witness, witnessno, crimedate, time, description, injury, status, evidencetype, evidencedescription, evidencedate, location, evidence) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)';
 
   try {
     await db.query(sql, [userId, category, victimName, victimAddress, victimContact, file, witnessNames, witnessContacts, crimeDate, crimeTime, crimeDescription, injuryOrDamages, status, evidence_Type, descripEvidence, dateEvidence, location, evidence]);
