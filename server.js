@@ -123,7 +123,7 @@ app.get('/barangays', (req, res) => {
   });
 });
 
-app.post('/submitReport', async (req, res) => {
+app.post('/submitReport', (req, res) => {
   const {
     userId,
     category,
@@ -149,16 +149,19 @@ app.post('/submitReport', async (req, res) => {
   const witnessNames = typeof witnessName === 'string' ? witnessName : '';
   const witnessContacts = typeof witnessContact === 'string' ? witnessContact : '';
 
-  const sql = 'INSERT INTO reports (user_id, category, name, address, contact, valid_id, witness, witnessno, crimedate, time, description, injury, status, evidencetype, evidencedescription, evidencedate, location, evidence) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)';
+  const sql = 'INSERT INTO reports (user_id, category, name, address, contact, valid_id, witness, witnessno, crimedate, time, description, injury, status, evidencetype, evidencedescription, evidencedate, location, evidence) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);';
 
-  try {
-    await db.query(sql, [userId, category, victimName, victimAddress, victimContact, file, witnessNames, witnessContacts, crimeDate, crimeTime, crimeDescription, injuryOrDamages, status, evidence_Type, descripEvidence, dateEvidence, location, evidence]);
+  db.query(sql, [userId, category, victimName, victimAddress, victimContact, file, witnessNames, witnessContacts, crimeDate, crimeTime, crimeDescription, injuryOrDamages, status, evidence_Type, descripEvidence, dateEvidence, location, evidence], (err, result) => {
+    if (err) {
+      console.error('Error saving report:', err);
+      res.status(500).send('Error saving data');
+      return;
+    }
+    console.log('New report added:', result);
     res.status(200).send('Report submitted successfully');
-  } catch (err) {
-    console.error('Error saving report:', err);
-    res.status(500).send('Error saving data');
-  }
+  });
 });
+
 
 app.post('/submitEmergency', (req, res) => {
   const { lat, combinedLocation } = req.body;
