@@ -438,9 +438,8 @@ app.post('/saveMessage', (req, res) => {
 });
 
 app.get('/api/emergencies', (req, res) => {
-  const query = 'SELECT * FROM emergency WHERE status IS NULL OR status = ""'; // Query to fetch emergencies with empty or null status
-
-  // Execute the query using db.query instead of pool.query
+  const query = 'SELECT * FROM emergency WHERE status IS NULL OR status = \'\''; 
+  
   db.query(query, (err, result) => {
     if (err) {
       console.error('Error executing query:', err);  // Log the error for debugging
