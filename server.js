@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const { Client } = require('pg');  // Import the pg library
+const { Pool } = require('pg');
 const cors = require('cors');
 const path = require('path');
 const http = require('http');
