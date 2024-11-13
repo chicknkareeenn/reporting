@@ -439,13 +439,14 @@ app.post('/saveMessage', (req, res) => {
 
 app.get('/api/emergencies', (req, res) => {
   const query = 'SELECT * FROM emergency WHERE status IS NULL OR status = ""'; // Query to fetch emergencies with empty or null status
-  
-  pool.query(query, (err, result) => {
+
+  // Execute the query using db.query instead of pool.query
+  db.query(query, (err, result) => {
     if (err) {
       console.error('Error executing query:', err);  // Log the error for debugging
       return res.status(500).json({ error: 'Failed to fetch emergencies' });
     }
-    
+
     // Check if result.rows is an array and send the result
     if (Array.isArray(result.rows)) {
       res.json(result.rows); // Send the rows back to the client
@@ -455,7 +456,6 @@ app.get('/api/emergencies', (req, res) => {
     }
   });
 });
-
 
 
 app.put('/api/emergencies/:id/respond', (req, res) => {
