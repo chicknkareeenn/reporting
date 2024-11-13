@@ -461,15 +461,15 @@ app.put('/api/emergencies/:id/respond', (req, res) => {
   const emergencyId = req.params.id;
 
   // Query to update the emergency status to 'Respond'
-  const query = 'UPDATE emergency SET status = "Respond" WHERE id = ?';
+  const query = 'UPDATE emergency SET status = $1 WHERE id = $2';
 
-  db.query(query, [emergencyId], (error, result) => {
+  db.query(query, ['Respond', emergencyId], (error, result) => {
     if (error) {
       console.error('Error updating emergency status:', error);
       return res.status(500).json({ message: 'Error updating emergency status' });
     }
 
-    if (result.affectedRows === 0) {
+    if (result.rowCount === 0) {
       // If no rows were affected, it means the emergency ID was not found
       return res.status(404).json({ message: 'Emergency not found' });
     }
@@ -478,4 +478,6 @@ app.put('/api/emergencies/:id/respond', (req, res) => {
     res.status(200).json({ message: 'Emergency status updated to Respond' });
   });
 });
+
+
 
