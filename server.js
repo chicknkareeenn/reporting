@@ -395,24 +395,19 @@ app.post('/reset-password', async (req, res) => {
 app.post('/saveMessage', async (req, res) => {
   const { userId, police, notif } = req.body;
 
-  console.log('Received request:', { userId, police, notif }); // Log request data
-
-  if (!userId || !police || !notif) {
-    return res.status(400).json({ success: false, message: 'Missing required fields' });
-  }
-
-  const query = 'INSERT INTO notifications (user_id, police_id, notif, chat_date) VALUES ($1, $2, $3, NOW())';
+  // Update the SQL query to use PostgreSQL parameterized syntax
+  const query = 'INSERT INTO notifications (userid, police_id, notif, chat_date) VALUES ($1, $2, $3, NOW())';
 
   try {
-    const result = await db.query(query, [userId, police, notif]);
-    console.log('Message saved:', result); // Log successful query result
+    // Use the pool.query method to run the query
+    const result = await pool.query(query, [userId, police, notif]);
+
     return res.status(200).json({ success: true, message: 'Message sent successfully' });
   } catch (error) {
-    console.error('Database error:', error); // Log the actual error from the database
-    return res.status(500).json({ success: false, message: 'Database error', error: error.message });
+    console.error('Database error:', error);
+    return res.status(500).json({ success: false, message: 'Database error', error });
   }
 });
-
 
 
 app.get('/api/emergencies', (req, res) => {
