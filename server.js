@@ -1,7 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const { Client } = require('pg');  // Import the pg library
-const { Pool } = require('pg');
 const cors = require('cors');
 const path = require('path');
 const http = require('http');
@@ -421,23 +420,20 @@ app.post('/reset-password', async (req, res) => {
 });
 
 
-app.post('/saveMessage', async (req, res) => {
+app.post('/saveMessage', (req, res) => {
   const { userId, police, notif } = req.body;
 
-  // Update the SQL query to use PostgreSQL parameterized syntax
+  // SQL query to insert data
   const query = 'INSERT INTO notifications (userid, police_id, notif, chat_date) VALUES ($1, $2, $3, NOW())';
-
-  try {
-    // Use the pool.query method to run the query
-    const result = await pool.query(query, [userId, police, notif]);
-
+  
+  db.query(query, [userId, police, notif], (error, results) => {
+    if (error) {
+      console.error('Database error:', error);
+      return res.status(500).json({ success: false, message: 'Database error', error });
+    }
     return res.status(200).json({ success: true, message: 'Message sent successfully' });
-  } catch (error) {
-    console.error('Database error:', error);
-    return res.status(500).json({ success: false, message: 'Database error', error });
-  }
+  });
 });
-
 
 app.get('/api/emergencies', (req, res) => {
   const query = 'SELECT * FROM emergency WHERE status IS NULL OR status = ""'; // Query to fetch emergencies with empty or null status
