@@ -10,7 +10,7 @@ const { broadcast } = require('./websocketServer');
 const { initWebSocketNotifServer, broadcastNotification } = require('./webSocketServerNotif');
 
 const app = express();
-const port = 8000;
+const port = 3306;
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
