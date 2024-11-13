@@ -98,15 +98,17 @@ app.post('/signup', (req, res) => {
     gender,
   } = req.body;
 
+  // SQL query to insert resident data into the residents table
   const sql = 'INSERT INTO residents (fullname, birthdate, barangay, phone, residency, email, username, password, gender) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)';
-  pool.query(sql, [fullName, birthDate, barangay, phoneNumber, proofOfResidency, emailAddress, username, password, gender], (err, result) => {
+  
+  // Execute the query using db.query
+  db.query(sql, [fullName, birthDate, barangay, phoneNumber, proofOfResidency, emailAddress, username, password, gender], (err, result) => {
     if (err) {
       console.error('Error saving resident:', err);
-      res.status(500).send('Error saving data');
-      return;
+      return res.status(500).send('Error saving data');
     }
     console.log('New resident added:', result);
-    res.status(200).send('Sign up successful');
+    return res.status(200).send('Sign up successful');
   });
 });
 
