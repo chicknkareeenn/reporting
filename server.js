@@ -145,17 +145,47 @@ app.post('/submitReport', async (req, res) => {
     status
   } = req.body;
 
-  // Directly use witnessName and witnessContact if they are already comma-separated strings
-  const witnessNames = typeof witnessName === 'string' ? witnessName : '';
-  const witnessContacts = typeof witnessContact === 'string' ? witnessContact : '';
+  // Ensure witnessName and witnessContact are strings
+  const witnessNames = typeof witnessName === 'string' && witnessName ? witnessName : null;
+  const witnessContacts = typeof witnessContact === 'string' && witnessContact ? witnessContact : null;
 
-  const sql = 'INSERT INTO reports (user_id, category, name, address, contact, valid_id, witness, witnessno, crimedate, time, description, injury, status, evidencetype, evidencedescription, evidencedate, location, evidence) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)';
+  // Handle file if needed (e.g., store file path or binary data)
+  const validId = file ? file : null; // Assuming file is a path or ID
+  const fileDate = new Date(); // Use current date and time for file_date, if applicable
+
+  // Ensure crimeDate and dateEvidence are valid date strings
+  const formattedCrimeDate = new Date(crimeDate).toISOString().split('T')[0]; // format as YYYY-MM-DD
+  const formattedEvidenceDate = dateEvidence ? new Date(dateEvidence).toISOString().split('T')[0] : null;
+
+  // Ensure crimeTime is in HH:MM:SS format
+  const formattedCrimeTime = crimeTime ? crimeTime : '00:00:00'; // Default to '00:00:00' if missing
+
+  const sql = `
+    INSERT INTO reports (
+      user_id, category, name, address, contact, valid_id, 
+      witness, witnessno, crimedate, time, description, injury, 
+      location, evidence, file_date, finish, police_assign, reason, 
+      status, evidencetype, evidencedescription, evidencedate
+    ) 
+    VALUES (
+      $1, $2, $3, $4, $5, $6, 
+      $7, $8, $9, $10, $11, $12, 
+      $13, $14, $15, $16, $17, $18, 
+      $19, $20, $21, $22
+    )
+  `;
 
   try {
-    await db.query(sql, [userId, category, victimName, victimAddress, victimContact, file, witnessNames, witnessContacts, crimeDate, crimeTime, crimeDescription, injuryOrDamages, status, evidence_Type, descripEvidence, dateEvidence, location, evidence]);
+    await db.query(sql, [
+      userId, category, victimName, victimAddress, victimContact, validId, 
+      witnessNames, witnessContacts, formattedCrimeDate, formattedCrimeTime, crimeDescription, 
+      injuryOrDamages, location, evidence, fileDate, 
+      null, null, null, status, evidence_Type, descripEvidence, formattedEvidenceDate
+    ]);
     res.status(200).send('Report submitted successfully');
   } catch (err) {
-    console.error('Error during insert:', err);  // Log the full error here
+    console.error('Error during insert:', err.message);
+    console.error(err.stack); // Log the full stack trace for debugging
     res.status(500).send('Error saving data');
   }
 });
