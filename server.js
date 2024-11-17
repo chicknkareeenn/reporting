@@ -6,8 +6,10 @@ const path = require('path');
 const http = require('http');
 const nodemailer = require('nodemailer');
 const router = express.Router();
+const admin = require('firebase-admin');
 const { broadcast } = require('./websocketServer');
 const { initWebSocketNotifServer, broadcastNotification } = require('./webSocketServerNotif');
+const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
 
 const app = express();
 const port = process.env.PORT || 10000;
@@ -476,5 +478,29 @@ app.put('/api/emergencies/:id/respond', (req, res) => {
 
     // If successful, respond with a success message
     res.status(200).json({ message: 'Emergency status updated to Respond' });
+  });
+});
+
+app.post('/save-fcm-token', (req, res) => {
+  const { userId, fcmToken } = req.body;
+
+  if (!userId || !fcmToken) {
+    return res.status(400).json({ success: false, message: 'User ID and FCM Token are required' });
+  }
+
+  // Store the FCM token in the database (e.g., in the `users` table)
+  const query = 'UPDATE police SET fcm_token = $1 WHERE id = $2';
+  
+  client.query(query, [fcmToken, userId], (err, result) => {
+    if (err) {
+      console.error('Error saving FCM token:', err);
+      return res.status(500).json({ success: false, message: 'Error saving FCM token' });
+    }
+    
+    if (result.rowCount > 0) {
+      return res.status(200).json({ success: true, message: 'FCM Token saved successfully' });
+    } else {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
   });
 });
