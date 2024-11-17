@@ -481,26 +481,3 @@ app.put('/api/emergencies/:id/respond', (req, res) => {
   });
 });
 
-app.post('/save-fcm-token', (req, res) => {
-  const { userId, fcmToken } = req.body;
-
-  if (!userId || !fcmToken) {
-    return res.status(400).json({ success: false, message: 'User ID and FCM Token are required' });
-  }
-
-  // Store the FCM token in the database (e.g., in the `users` table)
-  const query = 'UPDATE police SET fcm_token = $1 WHERE id = $2';
-  
-  client.query(query, [fcmToken, userId], (err, result) => {
-    if (err) {
-      console.error('Error saving FCM token:', err);
-      return res.status(500).json({ success: false, message: 'Error saving FCM token' });
-    }
-    
-    if (result.rowCount > 0) {
-      return res.status(200).json({ success: true, message: 'FCM Token saved successfully' });
-    } else {
-      return res.status(404).json({ success: false, message: 'User not found' });
-    }
-  });
-});
