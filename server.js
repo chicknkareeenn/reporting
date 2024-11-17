@@ -6,10 +6,9 @@ const path = require('path');
 const http = require('http');
 const nodemailer = require('nodemailer');
 const router = express.Router();
-const admin = require('firebase-admin');
 const { broadcast } = require('./websocketServer');
 const { initWebSocketNotifServer, broadcastNotification } = require('./webSocketServerNotif');
-const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
+
 
 const app = express();
 const port = process.env.PORT || 10000;
