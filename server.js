@@ -86,6 +86,52 @@ app.post('/login', async (req, res) => {
   }
 });
 
+app.post('/signup', (req, res) => {
+  const {
+    firstname,
+    lastName,
+    birthDate,
+    barangay,
+    phoneNumber,
+    proofOfResidency,
+    emailAddress,
+    username,
+    password,
+    gender,
+  } = req.body;
+
+  const fullName = `${firstname} ${lastName}`;
+
+  // SQL query to insert resident data into the residents table
+  const sql = 'INSERT INTO residents (fullname, firstname, lastname, birthdate, barangay, phone, residency, email, username, password, gender) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)';
+  
+  // Execute the query using db.query
+  db.query(sql, [fullName, firstname, lastName, birthDate, barangay, phoneNumber, proofOfResidency, emailAddress, username, password, gender], (err, result) => {
+    if (err) {
+      console.error('Error saving resident:', err);
+      return res.status(500).send('Error saving data');
+    }
+    console.log('New resident added:', result);
+    return res.status(200).send('Sign up successful');
+  });
+});
+
+app.get('/barangays', (req, res) => {
+  const sql = 'SELECT id, barangay FROM barangay';
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error('Error fetching barangays:', err);
+      res.status(500).send('Error fetching barangays');
+      return;
+    }
+    // Send only the rows array, which contains the desired data
+    res.json(results.rows);
+  });
+});
+
+
+
+
 app.post('/submitReport', (req, res) => {
     const {
         userId,
