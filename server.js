@@ -154,6 +154,8 @@ app.post('/submitReport', (req, res) => {
         return res.status(400).send({ error: 'User ID is required' });
     }
 
+    const time = new Date(crimeTime).toISOString().split('T')[1].split('.')[0];
+
     const sql = `
         INSERT INTO reports (
             user_id, 
@@ -184,7 +186,7 @@ app.post('/submitReport', (req, res) => {
             witnessName,
             witnessContact,
             crimeDate,
-            crimeTime,
+            time,
             crimeDescription,
             status,
             gender,
