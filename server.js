@@ -86,101 +86,77 @@ app.post('/login', async (req, res) => {
   }
 });
 
-app.post('/signup', (req, res) => {
-  const {
-    firstname,
-    lastName,
-    birthDate,
-    barangay,
-    phoneNumber,
-    proofOfResidency,
-    emailAddress,
-    username,
-    password,
-    gender,
-  } = req.body;
+app.post('/submitReport', (req, res) => {
+    const {
+        userId,
+        category,
+        victimName,
+        victimAddress,
+        victimContact,
+        witnessName,
+        witnessContact,
+        crimeDate,
+        crimeTime,
+        crimeDescription,
+        status,
+        gender,
+        sitio,
+    } = req.body;
 
-  const fullName = `${firstname} ${lastName}`;
-
-  // SQL query to insert resident data into the residents table
-  const sql = 'INSERT INTO residents (fullname, firstname, lastname, birthdate, barangay, phone, residency, email, username, password, gender) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)';
-  
-  // Execute the query using db.query
-  db.query(sql, [fullName, firstname, lastName, birthDate, barangay, phoneNumber, proofOfResidency, emailAddress, username, password, gender], (err, result) => {
-    if (err) {
-      console.error('Error saving resident:', err);
-      return res.status(500).send('Error saving data');
+    // Check if userId is null or undefined
+    if (!userId) {
+        return res.status(400).send({ error: 'User ID is required' });
     }
-    console.log('New resident added:', result);
-    return res.status(200).send('Sign up successful');
-  });
+
+    const sql = `
+        INSERT INTO reports (
+            user_id, 
+            category, 
+            name, 
+            address, 
+            contact, 
+            witness, 
+            witnessno, 
+            crimedate, 
+            time, 
+            description, 
+            status,
+            gender,
+            sitio
+        ) 
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+    `;
+
+    db.query(
+        sql,
+        [
+            userId,
+            category,
+            victimName,
+            victimAddress,
+            victimContact,
+            witnessName,
+            witnessContact,
+            crimeDate,
+            crimeTime,
+            crimeDescription,
+            status,
+            gender,
+            sitio,
+        ],
+        (err, result) => {
+            if (err) {
+                console.error('Error saving report:', err.message);
+                res.status(500).send({ error: 'Error saving data', details: err.message });
+                return;
+            }
+
+            console.log('New report added:', result.rows[0]); // Log the returned ID
+            res.status(200).send({ message: 'Report submitted successfully', reportId: result.rows[0].id });
+        }
+    );
 });
 
-app.get('/barangays', (req, res) => {
-  const sql = 'SELECT id, barangay FROM barangay';
-  db.query(sql, (err, results) => {
-    if (err) {
-      console.error('Error fetching barangays:', err);
-      res.status(500).send('Error fetching barangays');
-      return;
-    }
-    // Send only the rows array, which contains the desired data
-    res.json(results.rows);
-  });
-});
-
-app.post('/submitReport', async (req, res) => {
-  const {
-    userId,
-    category,
-    victimName,
-    victimAddress,
-    victimContact,
-    witnessName,
-    witnessContact,
-    crimeDate,
-    crimeTime,
-    crimeDescription,
-    status,
-    gender,
-    sitio
-  } = req.body;
-
-  // Convert crimeTime to just the time portion (HH:MM:SS)
-  const time = new Date(crimeTime).toISOString().split('T')[1].split('.')[0];  // Extracts '03:53:00'
-
-  // Directly use witnessName and witnessContact if they are already comma-separated strings
-  const witnessNames = typeof witnessName === 'string' ? witnessName : '';
-  const witnessContacts = typeof witnessContact === 'string' ? witnessContact : '';
-
-  const sql = `
-    INSERT INTO reports 
-    (user_id, category, name, address, contact, witness, witnessno, crimedate, time, description, status, gender, sitio)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
-  `;
-
-  try {
-    await db.query(sql, [
-      userId, 
-      category, 
-      victimName, 
-      victimAddress, 
-      victimContact,  
-      witnessNames, 
-      witnessContacts, 
-      crimeDate, 
-      time,  // Inserting correctly formatted time
-      crimeDescription,
-      status,
-      gender,
-      sitio 
-    ]);
-    res.status(200).send('Report submitted successfully');
-  } catch (err) {
-    console.error('Error during insert:', err);  // Log the full error here
-    res.status(500).send('Error saving data');
-  }
-});
 
 
 
