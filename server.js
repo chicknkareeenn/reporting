@@ -141,9 +141,9 @@ app.post('/submitReport', async (req, res) => {
     crimeDate,
     crimeTime,
     crimeDescription,
+    status,
     gender,
-    sitio,
-    status
+    sitio
   } = req.body;
 
   // Convert crimeTime to just the time portion (HH:MM:SS)
@@ -155,7 +155,7 @@ app.post('/submitReport', async (req, res) => {
 
   const sql = `
     INSERT INTO reports 
-    (user_id, category, name, address, contact, witness, witnessno, crimedate, time, description, gender, sitio, status)
+    (user_id, category, name, address, contact, witness, witnessno, crimedate, time, description, status, gender, sitio)
     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
   `;
 
@@ -171,9 +171,9 @@ app.post('/submitReport', async (req, res) => {
       crimeDate, 
       time,  // Inserting correctly formatted time
       crimeDescription,
+      status,
       gender,
-      sitio,
-      status, 
+      sitio 
     ]);
     res.status(200).send('Report submitted successfully');
   } catch (err) {
