@@ -496,3 +496,30 @@ app.put('/api/emergencies/:id/respond', (req, res) => {
   });
 });
 
+app.get('/api/users/:id', (req, res) => {
+  const userId = req.params.id;
+
+  // Query to fetch username, password, and email based on user ID
+  const sql = 'SELECT username, password, email FROM residents WHERE id = $1';
+  
+  db.query(sql, [userId], (error, result) => {
+    if (error) {
+      console.error('Error fetching user:', error);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Log the full result to see the structure
+    console.log('Database result:', result.rows);
+
+    // Destructure the fields from the result
+    const { username, password, email } = result.rows[0];
+    
+    // Return the user data as JSON
+    res.json({ username, password, email });
+  });
+});
+
