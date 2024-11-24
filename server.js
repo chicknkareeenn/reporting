@@ -88,7 +88,8 @@ app.post('/login', async (req, res) => {
 
 app.post('/signup', (req, res) => {
   const {
-    fullName,
+    firstname,
+    lastName,
     birthDate,
     barangay,
     phoneNumber,
@@ -99,11 +100,13 @@ app.post('/signup', (req, res) => {
     gender,
   } = req.body;
 
+  const fullName = `${firstname} ${lastName}`;
+
   // SQL query to insert resident data into the residents table
-  const sql = 'INSERT INTO residents (fullname, birthdate, barangay, phone, residency, email, username, password, gender) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)';
+  const sql = 'INSERT INTO residents (fullname, firstname, lastname, birthdate, barangay, phone, residency, email, username, password, gender) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)';
   
   // Execute the query using db.query
-  db.query(sql, [fullName, birthDate, barangay, phoneNumber, proofOfResidency, emailAddress, username, password, gender], (err, result) => {
+  db.query(sql, [fullName, firstname, lastName, birthDate, barangay, phoneNumber, proofOfResidency, emailAddress, username, password, gender], (err, result) => {
     if (err) {
       console.error('Error saving resident:', err);
       return res.status(500).send('Error saving data');
@@ -133,18 +136,13 @@ app.post('/submitReport', async (req, res) => {
     victimName,
     victimAddress,
     victimContact,
-    file,
     witnessName,
     witnessContact,
     crimeDate,
     crimeTime,
     crimeDescription,
-    injuryOrDamages,
-    evidence_Type,
-    descripEvidence,
-    dateEvidence,
-    location,
-    evidence,
+    gender,
+    sitio,
     status
   } = req.body;
 
@@ -157,8 +155,8 @@ app.post('/submitReport', async (req, res) => {
 
   const sql = `
     INSERT INTO reports 
-    (user_id, category, name, address, contact, valid_id, witness, witnessno, crimedate, time, description, injury, status, evidencetype, evidencedescription, evidencedate, location, evidence)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
+    (user_id, category, name, address, contact, witness, witnessno, crimedate, time, description, gender, sitio, status)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
   `;
 
   try {
@@ -167,20 +165,15 @@ app.post('/submitReport', async (req, res) => {
       category, 
       victimName, 
       victimAddress, 
-      victimContact, 
-      file, 
+      victimContact,  
       witnessNames, 
       witnessContacts, 
       crimeDate, 
       time,  // Inserting correctly formatted time
-      crimeDescription, 
-      injuryOrDamages, 
+      crimeDescription,
+      gender,
+      sitio,
       status, 
-      evidence_Type, 
-      descripEvidence, 
-      dateEvidence, 
-      location, 
-      evidence
     ]);
     res.status(200).send('Report submitted successfully');
   } catch (err) {
