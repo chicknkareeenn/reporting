@@ -192,14 +192,13 @@ app.post('/submitReport', (req, res) => {
         ],
         (err, result) => {
             if (err) {
-                console.error('Error saving report:', err.message);
-                res.status(500).send({ error: 'Error saving data', details: err.message });
-                return;
-            }
-
-            console.log('New report added:', result.rows[0]); // Log the returned ID
-            res.status(200).send({ message: 'Report submitted successfully', reportId: result.rows[0].id });
-        }
+              console.error('Error saving report:', err.message);
+              res.status(500).send({ error: 'Error saving data', details: err.message });
+              return;
+          }
+          console.log('New report added:', result);
+          res.status(200).send({ message: 'Report submitted successfully' });
+      }
     );
 });
 
