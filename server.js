@@ -523,26 +523,32 @@ app.get('/api/users/:id', (req, res) => {
   });
 });
 
-app.get('/api/police/:userId', (req, res) => {
+app.get('/api/police/location/:userId', async (req, res) => {
   const { userId } = req.params;
 
-  // PostgreSQL query syntax
-  const query = 'SELECT * FROM police WHERE id = $1'; // $1 is the placeholder for userId
-  db.query(query, [userId], (err, result) => { // Use db.query to perform the query
-    if (err) {
-      console.error('Error fetching police station location:', err);
-      return res.status(500).json({ error: 'Error fetching police station location' });
-    }
+  try {
+    // Query to fetch police station based on officer_id using parameterized query for security
+    const sql = 'SELECT station FROM police WHERE id = $1';
+    const result = await db.query(sql, [userId]);
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Police station not found' });
+      return res.status(404).json({ error: 'Police station not found for this officer' });
     }
 
+    // Assuming `station` is a string like "latitude,longitude"
     const policeStation = result.rows[0];
-    // Assuming `station` column stores latitude and longitude as "lat,lon"
     const [latitude, longitude] = policeStation.station.split(',');
 
-    res.json({ station: { latitude: parseFloat(latitude), longitude: parseFloat(longitude) } });
-  });
-});
+    // Create an object to hold the latitude and longitude dynamically
+    const policeStationLocation = {
+      latitude: parseFloat(latitude),
+      longitude: parseFloat(longitude),
+    };
 
+    // Return the location as a JSON response
+    res.json(policeStationLocation);
+  } catch (err) {
+    console.error('Error fetching police station location:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
