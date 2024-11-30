@@ -523,3 +523,35 @@ app.get('/api/users/:id', (req, res) => {
   });
 });
 
+app.get('/api/police-station', async (req, res) => {
+  const { userId } = req.query;
+
+  if (!userId) {
+    return res.status(400).send('User ID is required');
+  }
+
+  try {
+    // Query the database for the station column associated with the police user
+    const sql = 'SELECT station FROM police WHERE id = $1';
+    const result = await db.query(sql, [userId]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).send('Station not found');
+    }
+
+    const station = result.rows[0].station;
+
+    // Parse the station column to extract latitude and longitude
+    const [latitude, longitude] = station.split(',').map(coord => coord.trim());
+
+    // Send the parsed latitude and longitude
+    res.json({
+      latitude: parseFloat(latitude),
+      longitude: parseFloat(longitude),
+    });
+  } catch (err) {
+    console.error('Database query error:', err);
+    return res.status(500).send('Server error');
+  }
+});
+
