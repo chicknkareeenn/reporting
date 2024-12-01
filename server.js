@@ -6,39 +6,12 @@ const path = require('path');
 const http = require('http');
 const nodemailer = require('nodemailer');
 const router = express.Router();
-const WebSocket = require('ws'); 
+const { broadcast } = require('./websocketServer');
+const { initWebSocketNotifServer, broadcastNotification } = require('./webSocketServerNotif');
 
 
 const app = express();
 const port = process.env.PORT || 10000;
-
-// Create an HTTP server for your Express app
-const server = http.createServer(app);
-
-// Initialize WebSocket server within the same file
-const wss = new WebSocket.Server({ server });
-
-wss.on('connection', (ws) => {
-  console.log('New WebSocket connection');
-  
-  ws.on('message', (message) => {
-    console.log('Received:', message);
-  });
-
-  // Send a welcome message to the new connection
-  ws.send(JSON.stringify({ message: 'Welcome to the emergency reporting system' }));
-});
-
-// Broadcast function to send messages to all WebSocket clients
-const broadcast = (message) => {
-  if (wss.clients) {
-    wss.clients.forEach((client) => {
-      if (client.readyState === WebSocket.OPEN) {
-        client.send(message);
-      }
-    });
-  }
-};
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
@@ -66,9 +39,8 @@ db.connect((err) => {
   console.log('PostgreSQL connected...');
 });
 
-module.exports = {
-  broadcast, // Export the broadcast function if needed elsewhere
-};
+const server = http.createServer(app);
+initWebSocketNotifServer(server);
 
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
@@ -243,8 +215,9 @@ app.post('/submitEmergency', (req, res) => {
     return;
   }
 
-  // Insert the emergency report into the database
+  // Update query to use PostgreSQL parameterized syntax ($1, $2)
   const sql = 'INSERT INTO emergency (lat, location) VALUES ($1, $2)';
+
   db.query(sql, [lat, combinedLocation], (err, result) => {
     if (err) {
       console.error('Database query error:', err);
@@ -253,7 +226,7 @@ app.post('/submitEmergency', (req, res) => {
     }
     console.log('New emergency report added:', result);
 
-    // Broadcasting the emergency alert to all WebSocket clients
+    // Broadcasting the emergency alert
     broadcast(JSON.stringify({
       type: 'emergencyAlert',
       data: {
