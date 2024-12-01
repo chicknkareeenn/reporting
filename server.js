@@ -6,7 +6,6 @@ const path = require('path');
 const http = require('http');
 const nodemailer = require('nodemailer');
 const router = express.Router();
-const { broadcast } = require('./websocketServer');
 const { initWebSocketNotifServer, broadcast } = require('./websocketServer');
 
 
