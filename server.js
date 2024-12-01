@@ -6,11 +6,39 @@ const path = require('path');
 const http = require('http');
 const nodemailer = require('nodemailer');
 const router = express.Router();
-const { initWebSocketNotifServer, broadcast } = require('./websocketServer');
+const WebSocket = require('ws'); 
 
 
 const app = express();
 const port = process.env.PORT || 10000;
+
+// Create an HTTP server for your Express app
+const server = http.createServer(app);
+
+// Initialize WebSocket server within the same file
+const wss = new WebSocket.Server({ server });
+
+wss.on('connection', (ws) => {
+  console.log('New WebSocket connection');
+  
+  ws.on('message', (message) => {
+    console.log('Received:', message);
+  });
+
+  // Send a welcome message to the new connection
+  ws.send(JSON.stringify({ message: 'Welcome to the emergency reporting system' }));
+});
+
+// Broadcast function to send messages to all WebSocket clients
+const broadcast = (message) => {
+  if (wss.clients) {
+    wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(message);
+      }
+    });
+  }
+};
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
@@ -22,11 +50,6 @@ app.use(cors());
 
 // Serve static files from 'uploads' directory
 app.use('/new/uploads', express.static(path.join(__dirname, 'uploads')));
-
-// Create an HTTP server for your Express app
-const server = http.createServer(app);
-// Initialize WebSocket server
-initWebSocketNotifServer(server);
 
 const db = new Client({
   connectionString: "postgresql://reporting_ia98_user:C1S8UVRh7jFTCjOkAuuV4qoZXgPfPIGG@dpg-csonachu0jms738mmhng-a/reporting_ia98",
@@ -42,6 +65,10 @@ db.connect((err) => {
   }
   console.log('PostgreSQL connected...');
 });
+
+module.exports = {
+  broadcast, // Export the broadcast function if needed elsewhere
+};
 
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
