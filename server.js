@@ -43,9 +43,6 @@ db.connect((err) => {
   console.log('PostgreSQL connected...');
 });
 
-const server = http.createServer(app);
-initWebSocketNotifServer(server);
-
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
 
