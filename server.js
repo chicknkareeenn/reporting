@@ -7,7 +7,7 @@ const http = require('http');
 const nodemailer = require('nodemailer');
 const router = express.Router();
 const { broadcast } = require('./websocketServer');
-const { initWebSocketNotifServer, broadcastNotification } = require('./webSocketServerNotif');
+const { initWebSocketNotifServer, broadcast } = require('./websocketServer');
 
 
 const app = express();
@@ -23,6 +23,11 @@ app.use(cors());
 
 // Serve static files from 'uploads' directory
 app.use('/new/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Create an HTTP server for your Express app
+const server = http.createServer(app);
+// Initialize WebSocket server
+initWebSocketNotifServer(server);
 
 const db = new Client({
   connectionString: "postgresql://reporting_ia98_user:C1S8UVRh7jFTCjOkAuuV4qoZXgPfPIGG@dpg-csonachu0jms738mmhng-a/reporting_ia98",
@@ -215,9 +220,8 @@ app.post('/submitEmergency', (req, res) => {
     return;
   }
 
-  // Update query to use PostgreSQL parameterized syntax ($1, $2)
+  // Insert the emergency report into the database
   const sql = 'INSERT INTO emergency (lat, location) VALUES ($1, $2)';
-
   db.query(sql, [lat, combinedLocation], (err, result) => {
     if (err) {
       console.error('Database query error:', err);
@@ -226,7 +230,7 @@ app.post('/submitEmergency', (req, res) => {
     }
     console.log('New emergency report added:', result);
 
-    // Broadcasting the emergency alert
+    // Broadcasting the emergency alert to all WebSocket clients
     broadcast(JSON.stringify({
       type: 'emergencyAlert',
       data: {
