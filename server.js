@@ -554,7 +554,7 @@ app.get('/api/police/location/:userId', async (req, res) => {
 });
 
 app.get('/policenotifications', (req, res) => {
-  const query = 'SELECT location, time FROM emergency ORDER BY time DESC'; // Only select location and time
+  const query = 'SELECT location, report_date FROM emergency ORDER BY report_date DESC'; // Only select location and time
   db.query(query, (error, result) => {
     if (error) {
       console.error('Error fetching notifications:', error);
