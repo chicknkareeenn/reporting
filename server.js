@@ -455,7 +455,7 @@ app.post('/saveMessage', (req, res) => {
 });
 
 app.get('/api/emergencies', (req, res) => {
-  const query = 'SELECT * FROM emergency WHERE status IS NULL OR status = 'Responding''; 
+  const query = `SELECT * FROM emergency WHERE status IS NULL OR status = 'Responding'`; // Use backticks to define the string
   
   db.query(query, (err, result) => {
     if (err) {
@@ -472,6 +472,7 @@ app.get('/api/emergencies', (req, res) => {
     }
   });
 });
+
 
 
 app.put('/api/emergencies/:id/respond', (req, res) => {
