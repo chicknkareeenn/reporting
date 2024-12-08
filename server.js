@@ -214,7 +214,7 @@ app.post('/submitEmergency', (req, res) => {
     return res.status(400).json({ error: 'Location data is required' });
   }
 
-  // Query with RETURNING clause to get the inserted ID
+  // Updated query with RETURNING id
   const sql = 'INSERT INTO emergency (lat, location) VALUES ($1, $2) RETURNING id';
 
   db.query(sql, [lat, combinedLocation], (err, result) => {
@@ -223,7 +223,15 @@ app.post('/submitEmergency', (req, res) => {
       return res.status(500).json({ error: 'Server error' });
     }
 
-    const emergencyId = result.rows[0]?.id; // Retrieve the inserted ID
+    // Log the result to debug
+    console.log('Query result:', result);
+
+    const emergencyId = result.rows[0]?.id; // Extract the inserted ID
+    if (!emergencyId) {
+      console.error('Emergency ID not found in result.rows:', result.rows);
+      return res.status(500).json({ error: 'Failed to retrieve emergency ID' });
+    }
+
     console.log('New emergency report added with ID:', emergencyId);
 
     // Broadcasting the emergency alert
@@ -243,6 +251,7 @@ app.post('/submitEmergency', (req, res) => {
     });
   });
 });
+
 
 
 
