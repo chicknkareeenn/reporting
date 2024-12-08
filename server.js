@@ -211,8 +211,7 @@ app.post('/submitEmergency', (req, res) => {
   const { lat, combinedLocation } = req.body;
 
   if (!lat || !combinedLocation) {
-    res.status(400).send('Location data is required');
-    return;
+    return res.status(400).json({ error: 'Location data is required' });
   }
 
   // Update query to use PostgreSQL parameterized syntax ($1, $2)
@@ -221,8 +220,7 @@ app.post('/submitEmergency', (req, res) => {
   db.query(sql, [lat, combinedLocation], (err, result) => {
     if (err) {
       console.error('Database query error:', err);
-      res.status(500).send('Server error');
-      return;
+      return res.status(500).json({ error: 'Server error' });
     }
     console.log('New emergency report added:', result);
 
@@ -234,9 +232,14 @@ app.post('/submitEmergency', (req, res) => {
       }
     }));
 
-    res.status(200).send('Emergency report submitted successfully');
+    // Sending a JSON response on successful submission
+    res.status(200).json({
+      message: 'Emergency report submitted successfully',
+      emergencyId: result.rows[0]?.id,  // Include the emergency ID if needed
+    });
   });
 });
+
 
 
 app.get('/notifications', (req, res) => {
