@@ -214,28 +214,32 @@ app.post('/submitEmergency', (req, res) => {
     return res.status(400).json({ error: 'Location data is required' });
   }
 
-  // Update query to use PostgreSQL parameterized syntax ($1, $2)
-  const sql = 'INSERT INTO emergency (lat, location) VALUES ($1, $2)';
+  // Query with RETURNING clause to get the inserted ID
+  const sql = 'INSERT INTO emergency (lat, location) VALUES ($1, $2) RETURNING id';
 
   db.query(sql, [lat, combinedLocation], (err, result) => {
     if (err) {
       console.error('Database query error:', err);
       return res.status(500).json({ error: 'Server error' });
     }
-    console.log('New emergency report added:', result);
+
+    const emergencyId = result.rows[0]?.id; // Retrieve the inserted ID
+    console.log('New emergency report added with ID:', emergencyId);
 
     // Broadcasting the emergency alert
-    broadcast(JSON.stringify({
-      type: 'emergencyAlert',
-      data: {
-        combinedLocation,
-      }
-    }));
+    broadcast(
+      JSON.stringify({
+        type: 'emergencyAlert',
+        data: {
+          combinedLocation,
+        },
+      })
+    );
 
-    // Sending a JSON response on successful submission
+    // Sending a JSON response with the emergency ID
     res.status(200).json({
       message: 'Emergency report submitted successfully',
-      emergencyId: result.rows[0]?.id,  // Include the emergency ID if needed
+      emergencyId, // Include the emergency ID in the response
     });
   });
 });
