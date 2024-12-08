@@ -568,3 +568,22 @@ app.get('/policenotifications', (req, res) => {
     result.rows.forEach(notification => broadcastNotification(notification));
   });
 });
+
+// In server.js (Express backend)
+app.put('/api/emergencies/:id/responding', async (req, res) => {
+  const emergencyId = req.params.id;
+  try {
+    // Update the status of the emergency to 'responding' without triggering an alert
+    const [result] = await db.query('UPDATE emergency SET status = "Responding" WHERE id = ?', [emergencyId]);
+    
+    if (result.affectedRows > 0) {
+      res.status(200).json({ message: 'Emergency status updated to Responding' });
+    } else {
+      res.status(404).json({ message: 'Emergency not found' });
+    }
+  } catch (error) {
+    console.error('Error updating emergency status:', error);
+    res.status(500).json({ message: 'Failed to update emergency status' });
+  }
+});
+
