@@ -455,7 +455,7 @@ app.post('/saveMessage', (req, res) => {
 });
 
 app.get('/api/emergencies', (req, res) => {
-  const query = 'SELECT * FROM emergency WHERE status = 'Responding' OR status IS NULL OR status = \'\''; 
+  const query = "SELECT * FROM emergency WHERE status = 'Responding' OR status IS NULL OR status = ''"; 
   
   db.query(query, (err, result) => {
     if (err) {
@@ -554,7 +554,7 @@ app.get('/api/police/location/:userId', async (req, res) => {
 });
 
 app.get('/policenotifications', (req, res) => {
-  const query = 'SELECT location, report_date FROM emergency WHERE status IS NULL OR status = 'Responding' ORDER BY report_date DESC'; // Only select location and time
+  const query = "SELECT location, report_date FROM emergency WHERE status IS NULL OR status = 'Responding' ORDER BY report_date DESC"; 
   db.query(query, (error, result) => {
     if (error) {
       console.error('Error fetching notifications:', error);
