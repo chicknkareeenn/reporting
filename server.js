@@ -208,18 +208,17 @@ app.post('/submitReport', (req, res) => {
 
 
 app.post('/submitEmergency', (req, res) => {
-  const { lat, combinedLocation, deviceToken } = req.body;
+  const { lat, combinedLocation } = req.body;
 
-  // Validate required fields
-  if (!lat || !combinedLocation || !deviceToken) {
-    res.status(400).send('Location, combinedLocation, and deviceToken are required');
+  if (!lat || !combinedLocation) {
+    res.status(400).send('Location data is required');
     return;
   }
 
-  // Update query to use PostgreSQL parameterized syntax ($1, $2, $3)
-  const sql = 'INSERT INTO emergency (lat, location, device_token) VALUES ($1, $2, $3)';
+  // Update query to use PostgreSQL parameterized syntax ($1, $2)
+  const sql = 'INSERT INTO emergency (lat, location) VALUES ($1, $2)';
 
-  db.query(sql, [lat, combinedLocation, deviceToken], (err, result) => {
+  db.query(sql, [lat, combinedLocation], (err, result) => {
     if (err) {
       console.error('Database query error:', err);
       res.status(500).send('Server error');
@@ -232,7 +231,6 @@ app.post('/submitEmergency', (req, res) => {
       type: 'emergencyAlert',
       data: {
         combinedLocation,
-        deviceToken, // Include the deviceToken if needed for broadcasting
       }
     }));
 
