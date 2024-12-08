@@ -455,7 +455,7 @@ app.post('/saveMessage', (req, res) => {
 });
 
 app.get('/api/emergencies', (req, res) => {
-  const query = "SELECT * FROM emergency WHERE status IN ('Coming', '', NULL)"; 
+  const query = 'SELECT * FROM emergency WHERE status IS NULL OR status = 'Responding''; 
   
   db.query(query, (err, result) => {
     if (err) {
