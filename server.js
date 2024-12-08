@@ -569,21 +569,26 @@ app.get('/policenotifications', (req, res) => {
   });
 });
 
-// In server.js (Express backend)
-app.put('/api/emergencies/:id/responding', async (req, res) => {
+app.put('/api/emergencies/:id/responding', (req, res) => {
   const emergencyId = req.params.id;
-  try {
-    // Update the status of the emergency to 'responding' without triggering an alert
-    const [result] = await db.query('UPDATE emergency SET status = "Responding" WHERE id = ?', [emergencyId]);
-    
-    if (result.affectedRows > 0) {
-      res.status(200).json({ message: 'Emergency status updated to Responding' });
-    } else {
-      res.status(404).json({ message: 'Emergency not found' });
+
+  // Query to update the emergency status to 'Respond'
+  const query = 'UPDATE emergency SET status = $1 WHERE id = $2';
+
+  db.query(query, ['Responding', emergencyId], (error, result) => {
+    if (error) {
+      console.error('Error updating emergency status:', error);
+      return res.status(500).json({ message: 'Error updating emergency status' });
     }
-  } catch (error) {
-    console.error('Error updating emergency status:', error);
-    res.status(500).json({ message: 'Failed to update emergency status' });
-  }
+
+    if (result.rowCount === 0) {
+      // If no rows were affected, it means the emergency ID was not found
+      return res.status(404).json({ message: 'Emergency not found' });
+    }
+
+    // If successful, respond with a success message
+    res.status(200).json({ message: 'Emergency status updated to Respond' });
+  });
 });
+
 
