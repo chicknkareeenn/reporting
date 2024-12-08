@@ -611,13 +611,13 @@ app.put('/api/emergencies/:id/responding', (req, res) => {
 // Endpoint to get the status of an emergency
 app.get('/getEmergencyStatus/:id', async (req, res) => {
   const emergencyId = req.params.id;
-  
+
   // Query the database for the status of the emergency
   const query = 'SELECT status FROM emergency WHERE id = $1';
-  
+
   try {
     const result = await client.query(query, [emergencyId]);
-    
+
     if (result.rows.length > 0) {
       res.json({ status: result.rows[0].status });
     } else {
