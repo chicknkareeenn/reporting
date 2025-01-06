@@ -208,16 +208,16 @@ app.post('/submitReport', (req, res) => {
 
 
 app.post('/submitEmergency', (req, res) => {
-  const { lat, combinedLocation } = req.body;
+  const { lat, combinedLocation, phoneNumber } = req.body;
 
   if (!lat || !combinedLocation) {
     return res.status(400).json({ error: 'Location data is required' });
   }
 
   // Updated query with RETURNING id
-  const sql = 'INSERT INTO emergency (lat, location) VALUES ($1, $2) RETURNING id';
+  const sql = 'INSERT INTO emergency (lat, location, number) VALUES ($1, $2, $3) RETURNING id';
 
-  db.query(sql, [lat, combinedLocation], (err, result) => {
+  db.query(sql, [lat, combinedLocation, phoneNumber], (err, result) => {
     if (err) {
       console.error('Database query error:', err);
       return res.status(500).json({ error: 'Server error' });
